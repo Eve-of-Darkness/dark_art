@@ -37,6 +37,11 @@ defmodule DarkArt.Entity do
     %{entity | components: Map.put(components, module, data)}
   end
 
+  @spec component_tags(Entity.t()) :: [module]
+  def component_tags(%Entity{components: components}) do
+    Map.keys(components)
+  end
+
   ## Private Functions
 
   defp struct_or_module_to_pair(data = %struct{}), do: {struct, data}

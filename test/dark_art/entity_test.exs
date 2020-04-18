@@ -67,4 +67,18 @@ defmodule DarkArt.EntityTest do
       assert entity.components[Moveable] == %Moveable{}
     end
   end
+
+  describe "#component_tags/1" do
+    test "returns an empty list for a blank entity" do
+      assert [] == Entity.component_tags(Entity.new([]))
+    end
+
+    test "returns a list with the correct component modules" do
+      nameable = %Nameable{name: "ben"}
+      datetime = DateTime.utc_now()
+      entity = Entity.new([nameable, datetime])
+
+      assert [DateTime, Nameable] = Entity.component_tags(entity)
+    end
+  end
 end
