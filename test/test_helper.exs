@@ -4,6 +4,14 @@ end
 
 defmodule Living do
   defstruct max: 100, current: 100, alive: true
+
+  def kill(living) do
+    if living.alive do
+      {:ok, %{living | current: 0, alive: false}}
+    else
+      :ignore
+    end
+  end
 end
 
 defmodule Moveable do

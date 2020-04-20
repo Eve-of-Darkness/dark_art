@@ -1,6 +1,7 @@
 defmodule DarkArt.EntityTest do
   use ExUnit.Case, async: true
   alias DarkArt.Entity
+  doctest Entity
 
   describe "#new/1" do
     test "works with just the module" do
@@ -68,17 +69,64 @@ defmodule DarkArt.EntityTest do
     end
   end
 
-  describe "#component_tags/1" do
-    test "returns an empty list for a blank entity" do
-      assert [] == Entity.component_tags(Entity.new([]))
+  describe "#update/3" do
+    setup do
+      {:ok, entity: Entity.new([Living])}
     end
 
-    test "returns a list with the correct component modules" do
-      nameable = %Nameable{name: "ben"}
-      datetime = DateTime.utc_now()
-      entity = Entity.new([nameable, datetime])
+    test "it errors for a component the entity does not have", %{entity: entity} do
+      assert :error == Entity.update(entity, Nameable, &{:ok, %{&1 | name: "gg"}})
+    end
 
-      assert [DateTime, Nameable] = Entity.component_tags(entity)
+    test "it will update an entity with a found component", %{entity: entity} do
+      assert {:ok, updated} =
+               Entity.update(entity, Living, &{:ok, %{&1 | current: 0, alive: false}})
+
+      assert updated.components[Living].current == 0
+      refute updated.components[Living].alive
+    end
+
+    test "does nothing if update returns :ignore", %{entity: entity} do
+      assert {:ok, not_updated} =
+               Entity.update(entity, Living, fn living = %{current: current, max: max} ->
+                 cond do
+                   current == max -> :ignore
+                   current > max -> {:ok, %{living | current: current - 1}}
+                   current < max -> {:ok, %{living | current: current + 1}}
+                 end
+               end)
+
+      assert entity == not_updated
+    end
+
+    test "given a function with an arity of two", %{entity: entity} do
+      {:ok, updated} =
+        entity
+        |> Entity.add(%Nameable{name: "ben"})
+        |> Entity.update(Nameable, fn nameable, entity ->
+          {:ok, living} = Entity.get(entity, Living)
+          status = if living.alive, do: "alive", else: "dead"
+          {:ok, %{nameable | name: "#{nameable.name} - (#{status})"}}
+        end)
+
+      assert updated.components[Nameable].name == "ben - (alive)"
+    end
+  end
+
+  describe "remove/2" do
+    setup do
+      {:ok, entity: Entity.new([Living, Nameable, Moveable])}
+    end
+
+    test "removing a single component", %{entity: entity} do
+      updated = Entity.remove(entity, Living)
+      assert entity.components[Living]
+      refute updated.components[Living]
+    end
+
+    test "removing several components", %{entity: entity} do
+      updated = Entity.remove(entity, [Nameable, Moveable])
+      assert [Living] == Map.keys(updated.components)
     end
   end
 end
