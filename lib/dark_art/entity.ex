@@ -216,6 +216,41 @@ defmodule DarkArt.Entity do
     end
   end
 
+  @doc """
+  Determine if entity holds a combination of components
+
+  This is usefull if you need to check a set of entities for an
+  edge case of some other components they may contain for further
+  processing.
+
+  ## Examples
+
+    iex> entity = Entity.new([Nameable, Moveable])
+    iex> Entity.has_components?(entity, [Nameable, Moveable])
+    true
+    iex> Entity.has_components?(entity, [Nameable])
+    true
+    iex> Entity.has_components?(entity, [])
+    true
+    iex> Entity.has_components?(entity, [Nameable, Living])
+    false
+
+    iex> entity = Entity.new([])
+    iex> Entity.has_components?(entity, [])
+    true
+    iex> Entity.has_components?(entity, [Nameable])
+    false
+
+  """
+  @spec has_components?(Entity.t(), [module] | %{module => []}) :: boolean
+  def has_components?(entity = %Entity{}, comp) when is_list(comp) do
+    has_components?(entity, Map.new(comp, &{&1, []}))
+  end
+
+  def has_components?(%Entity{components: entity}, map) when is_map(map) do
+    map_size(entity) >= map_size(map) and all_in?(map, entity)
+  end
+
   ## Handy Implementations
 
   defimpl Inspect do
@@ -237,4 +272,19 @@ defmodule DarkArt.Entity do
 
   defp do_component_update(fun, data, _) when is_function(fun, 1), do: fun.(data)
   defp do_component_update(fun, data, entity) when is_function(fun, 2), do: fun.(data, entity)
+
+  # Directly lifted from MapSet because I don't want to bring in
+  # everything from MapSet just to do this subset check
+  defp all_in?(:none, _), do: true
+
+  defp all_in?({key, _val, iter}, map2) do
+    :erlang.is_map_key(key, map2) and all_in?(:maps.next(iter), map2)
+  end
+
+  defp all_in?(map1, map2) when is_map(map1) and is_map(map2) do
+    map1
+    |> :maps.iterator()
+    |> :maps.next()
+    |> all_in?(map2)
+  end
 end
