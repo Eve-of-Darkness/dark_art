@@ -1,20 +1,20 @@
-defmodule DarkArt.ComponentViewTest do
+defmodule DarkArt.Component.ViewTest do
   use ExUnit.Case, async: true
-  alias DarkArt.{ComponentView, Entity}
-  doctest ComponentView
+  alias DarkArt.{Component.View, Entity}
+  doctest View
 
   describe "new/1" do
     test "works with an empty list" do
-      view = ComponentView.new([])
+      view = View.new([])
       assert view.id == :""
       assert view.view == %{}
     end
 
     test "the id is predictable" do
-      assert ComponentView.new([Nameable, Moveable]).id ==
+      assert View.new([Nameable, Moveable]).id ==
                Moveable.Elixir.Nameable
 
-      assert ComponentView.new([Moveable, Nameable, Living]).id ==
+      assert View.new([Moveable, Nameable, Living]).id ==
                Living.Elixir.Moveable.Elixir.Nameable
     end
   end

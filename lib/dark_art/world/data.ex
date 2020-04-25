@@ -1,5 +1,5 @@
-defmodule DarkArt.World do
-  alias DarkArt.{Entity, World}
+defmodule DarkArt.World.Data do
+  alias DarkArt.{Entity, World.Data}
 
   import Entity, only: [is_id?: 1]
 
@@ -7,20 +7,20 @@ defmodule DarkArt.World do
 
   @type data :: :etc.tid()
   @type data_row :: {Entity.id(), Entity.t()}
-  @type t :: %World{data: data}
+  @type t :: %Data{data: data}
 
   @doc """
-  Create a new world
+  Create new world data
 
   ## Examples
 
-    iex> World.new()
-    #DarkArt.World<size: 0>
+    iex> Data.new()
+    #DarkArt.World.Data<size: 0>
 
   """
   @spec new() :: t
   def new do
-    %World{data: init_storage()}
+    %Data{data: init_storage()}
   end
 
   @doc """
@@ -28,20 +28,20 @@ defmodule DarkArt.World do
 
   ## Examples
 
-    iex> world = World.new()
-    iex> {:ok, world} = World.add_entity(world, Entity.new([]))
+    iex> world = Data.new()
+    iex> {:ok, world} = Data.add_entity(world, Entity.new([]))
     iex> world
-    #DarkArt.World<size: 1>
+    #DarkArt.World.Data<size: 1>
 
-    iex> world = World.new()
+    iex> world = Data.new()
     iex> entity = Entity.new([])
-    iex> {:ok, world} = World.add_entity(world, entity)
-    iex> World.add_entity(world, entity)
+    iex> {:ok, world} = Data.add_entity(world, entity)
+    iex> Data.add_entity(world, entity)
     {:error, :already_exists}
 
   """
   @spec add_entity(t, Entity.t()) :: {:ok, t} | {:error, term}
-  def add_entity(world = %World{}, entity = %Entity{id: id}) when is_id?(id) do
+  def add_entity(world = %Data{}, entity = %Entity{id: id}) when is_id?(id) do
     if insert_data(world.data, entity_to_row(entity)) do
       {:ok, world}
     else
@@ -54,37 +54,37 @@ defmodule DarkArt.World do
 
   ## Examples
 
-    iex> world = World.new()
+    iex> world = Data.new()
     iex> entity = Entity.new([])
-    iex> World.get_entity(world, entity.id)
+    iex> Data.get_entity(world, entity.id)
     {:error, :not_found}
 
-    iex> world = World.new()
+    iex> world = Data.new()
     iex> entity = Entity.new([])
-    iex> {:ok, world} = World.add_entity(world, entity)
-    iex> {:ok, found} = World.get_entity(world, entity.id)
+    iex> {:ok, world} = Data.add_entity(world, entity)
+    iex> {:ok, found} = Data.get_entity(world, entity.id)
     iex> found
     #DarkArt.Entity<[]>
 
   """
   @spec get_entity(t, Entity.id()) :: {:ok, Entity.t()} | {:error, term}
-  def get_entity(world = %World{}, id) when is_id?(id) do
+  def get_entity(world = %Data{}, id) when is_id?(id) do
     fetch_entity(world.data, id)
   end
 
   @doc """
-  Update Entity in World
+  Update Entity in Data
 
   This can roughly be thought of as an upsert; as it blindly places
   it into the world overwriting the entity if it was already there.
 
   ## Examples
 
-    iex> world = World.new()
+    iex> world = Data.new()
     iex> entity = Entity.new([])
-    iex> {:ok, _} = World.add_entity(world, entity)
-    iex> World.update_entity(world, Entity.add(entity, Nameable))
-    iex> {:ok, updated} = World.get_entity(world, entity.id)
+    iex> {:ok, _} = Data.add_entity(world, entity)
+    iex> Data.update_entity(world, Entity.add(entity, Nameable))
+    iex> {:ok, updated} = Data.get_entity(world, entity.id)
     iex> updated
     #DarkArt.Entity<[Nameable]>
 
@@ -100,16 +100,16 @@ defmodule DarkArt.World do
 
   ## Examples
 
-    iex> World.new() |> World.count()
+    iex> Data.new() |> Data.count()
     0
 
-    iex> {:ok, world} = World.new() |> World.add_entity(Entity.new([]))
-    iex> World.count(world)
+    iex> {:ok, world} = Data.new() |> Data.add_entity(Entity.new([]))
+    iex> Data.count(world)
     1
 
   """
   @spec count(t) :: pos_integer
-  def count(%World{data: data}), do: row_count(data)
+  def count(%Data{data: data}), do: row_count(data)
 
   ## Handy Implementations
 
@@ -118,7 +118,7 @@ defmodule DarkArt.World do
       import Inspect.Algebra
 
       concat([
-        "#DarkArt.World<size: #{World.count(world)}>"
+        "#DarkArt.World.Data<size: #{Data.count(world)}>"
       ])
     end
   end
@@ -155,7 +155,7 @@ defmodule DarkArt.World do
   @spec init_storage() :: data
   defp init_storage do
     :ets.new(
-      World,
+      Data,
       [
         :set,
         :public,

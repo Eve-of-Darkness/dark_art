@@ -1,5 +1,5 @@
-defmodule DarkArt.ComponentView do
-  alias DarkArt.{ComponentView, Entity}
+defmodule DarkArt.Component.View do
+  alias DarkArt.{Component.View, Entity}
 
   @moduledoc """
   Provides a quick way to access and identify what entities have
@@ -8,7 +8,7 @@ defmodule DarkArt.ComponentView do
 
   defstruct id: nil, view: %{}
 
-  @type t :: %ComponentView{
+  @type t :: %View{
           id: atom,
           view: %{module => []}
         }
@@ -21,13 +21,13 @@ defmodule DarkArt.ComponentView do
 
   ## Examples
 
-    iex> ComponentView.new([Moveable])
-    #DarkArt.ComponentView<[Moveable]>
+    iex> View.new([Moveable])
+    #DarkArt.Component.View<[Moveable]>
 
   """
   @spec new([module]) :: t
   def new(components) when is_list(components) do
-    %ComponentView{
+    %View{
       id: :"#{components |> Enum.sort() |> Enum.join(".")}",
       view: Map.new(components, &{&1, []})
     }
@@ -43,19 +43,19 @@ defmodule DarkArt.ComponentView do
 
   ## Examples
 
-    iex> view = ComponentView.new([Moveable])
+    iex> view = View.new([Moveable])
     iex> entity = Entity.new([Moveable, Living])
-    iex> ComponentView.has_components?(view, entity)
+    iex> View.has_components?(view, entity)
     true
 
-    iex> view = ComponentView.new([Moveable, Living])
+    iex> view = View.new([Moveable, Living])
     iex> entity = Entity.new([Nameable])
-    iex> ComponentView.has_components?(view, entity)
+    iex> View.has_components?(view, entity)
     false
 
   """
   @spec has_components?(t, Entity.t()) :: boolean
-  def has_components?(%ComponentView{view: view}, entity = %Entity{}) do
+  def has_components?(%View{view: view}, entity = %Entity{}) do
     Entity.has_components?(entity, view)
   end
 
@@ -66,7 +66,7 @@ defmodule DarkArt.ComponentView do
       import Inspect.Algebra
 
       concat([
-        "#DarkArt.ComponentView<",
+        "#DarkArt.Component.View<",
         to_doc(Map.keys(view), opts),
         ">"
       ])
